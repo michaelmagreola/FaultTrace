@@ -1,4 +1,4 @@
-# FaultTrace — single App Runner image (API + built React UI + SQLite demo data)
+# FaultTrace — single container for ECS Express / App Runner (API + React UI + SQLite)
 FROM node:20-alpine AS frontend-build
 WORKDIR /frontend
 COPY frontend/package.json frontend/package-lock.json ./
@@ -15,8 +15,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     AUTH_MODE=dev \
     AI_MODE=local \
     DATABASE_URL=sqlite:////data/faulttrace.db \
-    STATIC_DIR=/app/static \
-    CORS_ORIGINS=["*"]
+    STATIC_DIR=/app/static
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       curl \

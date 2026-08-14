@@ -50,13 +50,18 @@ class Settings(BaseSettings):
     @field_validator("cors_origins", mode="before")
     @classmethod
     def split_cors(cls, value: object) -> object:
-        """Allow CORS_ORIGINS as JSON list or comma-separated string."""
+        """Allow CORS_ORIGINS as JSON list, '*', or comma-separated string."""
+        import json
+
         if isinstance(value, str):
             text = value.strip()
-            if not text:
-                return []
+            if not text or text in {"*", "[*]", "['*']", '["*"]'}:
+                return ["*"]
             if text.startswith("["):
-                return value
+                try:
+                    return json.loads(text)
+                except json.JSONDecodeError:
+                    return ["*"] if "*" in text else []
             return [part.strip() for part in text.split(",") if part.strip()]
         return value
 

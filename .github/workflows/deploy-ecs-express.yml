@@ -1,24 +1,27 @@
-name: Deploy ECS Express
+name: Deploy to ECS Express Mode
 
-# Skeleton — wire secrets and cluster ARN when AWS workshop resources exist.
+# Same path as RouteIQ: ECR image → Amazon ECS Express Mode (App Runner fallback).
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - "backend/**"
+      - "Dockerfile"
       - "frontend/**"
+      - "backend/**"
+      - "package.json"
       - ".github/workflows/deploy-ecs-express.yml"
 
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: faulttrace
+  SERVICE_NAME: faulttrace
+  CONTAINER_PORT: "8080"
 
 jobs:
-  build-and-push:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
     steps:
       - uses: actions/checkout@v4
@@ -34,24 +37,85 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push API image
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Ensure ECR repository exists
         run: |
-          docker build -t $REGISTRY/$ECR_REPOSITORY-api:$IMAGE_TAG ./backend
-          docker push $REGISTRY/$ECR_REPOSITORY-api:$IMAGE_TAG
-          echo "Pushed $REGISTRY/$ECR_REPOSITORY-api:$IMAGE_TAG"
+          aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" --region "$AWS_REGION" \
+            || aws ecr create-repository --repository-name "$ECR_REPOSITORY" --region "$AWS_REGION" \
+                 --image-scanning-configuration scanOnPush=true
 
-      - name: Build and push frontend image
+      - name: Build, tag, and push image
         env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
         run: |
-          docker build -t $REGISTRY/$ECR_REPOSITORY-web:$IMAGE_TAG ./frontend
-          docker push $REGISTRY/$ECR_REPOSITORY-web:$IMAGE_TAG
-          echo "Pushed $REGISTRY/$ECR_REPOSITORY-web:$IMAGE_TAG"
+          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_ENV"
 
-      # Next: update ECS Express service / task definition with new image digests.
-      - name: Note
-        run: echo "Wire ECS Express service update here once the cluster exists."
+      - name: Ensure ECS Express IAM roles
+        run: |
+          set -e
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+          if ! aws iam get-role --role-name ecsTaskExecutionRole >/dev/null 2>&1; then
+            aws iam create-role --role-name ecsTaskExecutionRole \
+              --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ecs-tasks.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
+            aws iam attach-role-policy --role-name ecsTaskExecutionRole \
+              --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+          fi
+
+          if ! aws iam get-role --role-name ecsInfrastructureRoleForExpressServices >/dev/null 2>&1; then
+            aws iam create-role --role-name ecsInfrastructureRoleForExpressServices \
+              --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Sid":"AllowAccessInfrastructureForECSExpressServices","Effect":"Allow","Principal":{"Service":"ecs.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
+            aws iam attach-role-policy --role-name ecsInfrastructureRoleForExpressServices \
+              --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSInfrastructureRoleforExpressGatewayServices
+          fi
+
+          echo "ACCOUNT_ID=$ACCOUNT_ID" >> "$GITHUB_ENV"
+          sleep 10
+
+      - name: Create or update Express Mode service
+        run: |
+          set -e
+          EXEC_ARN="arn:aws:iam::${ACCOUNT_ID}:role/ecsTaskExecutionRole"
+          INFRA_ARN="arn:aws:iam::${ACCOUNT_ID}:role/ecsInfrastructureRoleForExpressServices"
+          PRIMARY=$(jq -cn --arg img "$IMAGE_URI" --argjson port "$CONTAINER_PORT" \
+            '{image:$img, containerPort:$port, environment:[{name:"AUTH_MODE",value:"dev"},{name:"AI_MODE",value:"local"},{name:"SESSION_SECRET",value:"faulttrace-ecs-express-session-secret"}]}')
+
+          if aws ecs describe-express-gateway-service \
+               --service-arn "arn:aws:ecs:${AWS_REGION}:${ACCOUNT_ID}:service/default/${SERVICE_NAME}" \
+               >/tmp/svc.json 2>/dev/null; then
+            echo "Updating existing service..."
+            aws ecs update-express-gateway-service \
+              --service-arn "arn:aws:ecs:${AWS_REGION}:${ACCOUNT_ID}:service/default/${SERVICE_NAME}" \
+              --primary-container "$PRIMARY" \
+              --health-check-path "/health" \
+              --monitor-resources
+          else
+            echo "Creating Express Mode service..."
+            aws ecs create-express-gateway-service \
+              --service-name "$SERVICE_NAME" \
+              --primary-container "$PRIMARY" \
+              --execution-role-arn "$EXEC_ARN" \
+              --infrastructure-role-arn "$INFRA_ARN" \
+              --cpu 256 \
+              --memory 512 \
+              --health-check-path "/health" \
+              --scaling-target "minTaskCount=1,maxTaskCount=2" \
+              --monitor-mode TEXT-ONLY \
+              --monitor-resources
+          fi
+
+      - name: Print public URL
+        run: |
+          set -e
+          aws ecs describe-express-gateway-service \
+            --service-arn "arn:aws:ecs:${AWS_REGION}:${ACCOUNT_ID}:service/default/${SERVICE_NAME}" \
+            --output json | tee /tmp/express.json
+          ENDPOINT=$(python3 -c "import json; d=json.load(open('/tmp/express.json')); cfgs=d.get('service',{}).get('activeConfigurations') or []; print(cfgs[0]['ingressPaths'][0]['endpoint'] if cfgs else '')")
+          if [ -n "$ENDPOINT" ]; then
+            echo "LIVE_URL=https://${ENDPOINT}/" >> "$GITHUB_STEP_SUMMARY"
+            echo "https://${ENDPOINT}/"
+          else
+            echo "Service created; endpoint may appear after ACTIVE. Check ECS console."
+          fi
