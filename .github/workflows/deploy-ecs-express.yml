@@ -50,7 +50,14 @@ jobs:
         run: |
           docker build --no-cache -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_ENV"
+          DIGEST=$(aws ecr describe-images \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-ids imageTag=$IMAGE_TAG \
+            --query "imageDetails[0].imageDigest" \
+            --output text)
+          # Pin by digest so ECS Express actually rolls tasks (":latest" string alone may not).
+          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY@$DIGEST" >> "$GITHUB_ENV"
+          echo "Pushed $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ($DIGEST)"
 
       - name: Ensure ECS Express IAM roles
         run: |
