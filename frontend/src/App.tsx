@@ -141,6 +141,19 @@ export default function App() {
     void loadDirectory();
   }, []);
 
+  // Demo emails use .local — some browsers reject that with input type="email".
+  // Prefill the canonical account when the role changes so Supervisor/Admin are one click.
+  useEffect(() => {
+    const defaults: Record<Role, string> = {
+      technician: "tech@cardinal.local",
+      planner: "planner@cardinal.local",
+      admin: "admin@cardinal.local",
+    };
+    setLoginEmail(defaults[loginRole]);
+    setResolvedName("");
+    setLoginError(null);
+  }, [loginRole]);
+
   useEffect(() => {
     const email = loginEmail.trim().toLowerCase();
     if (email.length < 5 || !email.includes("@")) {
@@ -568,11 +581,12 @@ export default function App() {
   }
 
   if (!session) {
-    const emailHintId = resolvedName
-      ? "login-identity"
-      : loginEmail.includes("@")
-        ? "login-email-error"
-        : undefined;
+    const emailHintId = [
+      "login-demo-hint",
+      resolvedName ? "login-identity" : loginEmail.includes("@") ? "login-email-error" : null,
+    ]
+      .filter(Boolean)
+      .join(" ");
     return (
       <div className="shell login-shell">
         <a className="skip-link" href="#login-form">
@@ -597,8 +611,6 @@ export default function App() {
               value={loginRole}
               onChange={(e) => {
                 setLoginRole(e.target.value as Role);
-                setLoginEmail("");
-                setResolvedName("");
               }}
             >
               <option value="technician">Technician</option>
@@ -611,7 +623,8 @@ export default function App() {
             Email
             <input
               id="login-email"
-              type="email"
+              type="text"
+              inputMode="email"
               list="employee-emails"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
@@ -624,6 +637,7 @@ export default function App() {
               }
               required
               autoComplete="username"
+              spellCheck={false}
               aria-invalid={Boolean(loginEmail.includes("@") && !resolvedName)}
               aria-describedby={emailHintId}
             />
@@ -635,6 +649,29 @@ export default function App() {
               ))}
             </datalist>
           </label>
+
+          <p className="cell-sub" id="login-demo-hint">
+            Demo password for all roles: <strong>ADMIN</strong>
+            {loginRole === "technician" && (
+              <>
+                {" "}
+                · try <code>tech@cardinal.local</code>
+              </>
+            )}
+            {loginRole === "planner" && (
+              <>
+                {" "}
+                · try <code>planner@cardinal.local</code> (or{" "}
+                <code>supervisor@cardinal.local</code>)
+              </>
+            )}
+            {loginRole === "admin" && (
+              <>
+                {" "}
+                · try <code>admin@cardinal.local</code>
+              </>
+            )}
+          </p>
 
           {resolvedName ? (
             <p id="login-identity" className="resolved-name" role="status" aria-live="polite">

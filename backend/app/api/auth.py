@@ -21,6 +21,18 @@ from app.security import (
 
 router = APIRouter(tags=["auth"])
 
+# Demo-friendly aliases (UI says "Supervisor" but seed email is planner@…).
+_EMAIL_ALIASES: dict[tuple[str, str], str] = {
+    ("planner", "supervisor@cardinal.local"): "planner@cardinal.local",
+    ("planner", "supervisor@cardinal.com"): "planner@cardinal.local",
+    ("admin", "administrator@cardinal.local"): "admin@cardinal.local",
+}
+
+
+def _normalize_login_email(role: str, email: str) -> str:
+    cleaned = email.strip().lower()
+    return _EMAIL_ALIASES.get((role, cleaned), cleaned)
+
 
 class LoginRequest(BaseModel):
     role: str = Field(pattern="^(technician|planner|admin)$")
@@ -58,7 +70,7 @@ def login(
     except ValueError as exc:
         raise HTTPException(status_code=429, detail=str(exc)) from exc
 
-    email = body.email.strip().lower()
+    email = _normalize_login_email(body.role, body.email)
     emp = (
         db.query(Employee)
         .filter(Employee.email == email, Employee.role == body.role)
@@ -112,10 +124,11 @@ def resolve_employee(role: str, email: str, db: Session = Depends(get_db)):
     """Resolve email + role to a display name (for the login form)."""
     if role not in {"technician", "planner", "admin"}:
         raise HTTPException(status_code=400, detail="Invalid role")
+    email = _normalize_login_email(role, email)
     emp = (
         db.query(Employee)
         .filter(
-            Employee.email == email.strip().lower(),
+            Employee.email == email,
             Employee.role == role,
             Employee.active.is_(True),
         )
