@@ -16,7 +16,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     AI_MODE=local \
     DATABASE_URL=sqlite:////data/faulttrace.db \
     STATIC_DIR=/app/static \
-    CORS_ORIGINS=*
+    CORS_ORIGINS=["*"]
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       curl \

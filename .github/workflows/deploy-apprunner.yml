@@ -69,7 +69,7 @@ jobs:
                   "RuntimeEnvironmentVariables": {
                     "AUTH_MODE": "dev",
                     "AI_MODE": "local",
-                    "CORS_ORIGINS": "*",
+                    "CORS_ORIGINS": "[\"*\"]",
                     "SESSION_SECRET": "${{ secrets.SESSION_SECRET }}"
                   }
                 }
