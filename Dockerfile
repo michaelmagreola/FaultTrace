@@ -1,4 +1,5 @@
 # FaultTrace — single container for ECS Express / App Runner (API + React UI + SQLite)
+# cache-bust: login-email-ux-2026-08-14
 FROM node:20-alpine AS frontend-build
 WORKDIR /frontend
 COPY frontend/package.json frontend/package-lock.json ./
