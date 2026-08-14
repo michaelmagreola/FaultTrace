@@ -130,7 +130,7 @@ Password for all seeded users: **`ADMIN`**
 |----------|---------|--------|
 | `DATABASE_URL` | `sqlite:///./faulttrace.db` | Use Postgres URL when Docker DB is up |
 | `AUTH_MODE` | `dev` | `cognito` reserved for next week |
-| `SESSION_SECRET` | dev fallback | HMAC secret for signed session tokens (set a long random value) |
+| `SESSION_SECRET` | *(required)* | HMAC secret for signed session tokens. Use a long random value locally; on AWS inject via Secrets Manager (`secrets`), never plaintext task-def `environment`. Placeholders / empty values fail startup unless `ALLOW_INSECURE_DEV_SECRET=1` (local only). |
 | `AI_MODE` | `local` | `bedrock` reserved for next week |
 | `CORS_ORIGINS` | Vite localhost origins | Comma-separated; `*` rejected |
 | `RETRIEVAL_TOP_K` | `5` | Max neighbors returned |

@@ -83,9 +83,8 @@ jobs:
             echo "SESSION_SECRET GitHub secret must be set to a random value (>= 32 chars)."
             exit 1
           fi
-          # Refuse known placeholder / fallback strings if someone reintroduces them
           case "$SESSION_SECRET" in
-            faulttrace-ecs-express-session-secret|dev-only-faulttrace-session-secret-change-me)
+            faulttrace-ecs-express-session-secret|dev-only-faulttrace-session-secret-change-me|replace-with-a-long-random-secret)
               echo "SESSION_SECRET must not be a documented placeholder."
               exit 1
               ;;
@@ -93,15 +92,50 @@ jobs:
 
           EXEC_ARN="arn:aws:iam::${ACCOUNT_ID}:role/ecsTaskExecutionRole"
           INFRA_ARN="arn:aws:iam::${ACCOUNT_ID}:role/ecsInfrastructureRoleForExpressServices"
+
+          # Keep the signing key in Secrets Manager (not plaintext task-def environment).
+          SECRET_NAME="faulttrace/session-secret"
+          if ! SECRET_ARN=$(aws secretsmanager describe-secret --secret-id "$SECRET_NAME" --query ARN --output text 2>/dev/null); then
+            SECRET_ARN=$(aws secretsmanager create-secret \
+              --name "$SECRET_NAME" \
+              --description "FaultTrace HMAC session signing secret" \
+              --secret-string "$SESSION_SECRET" \
+              --query ARN --output text)
+          else
+            aws secretsmanager put-secret-value \
+              --secret-id "$SECRET_NAME" \
+              --secret-string "$SESSION_SECRET" >/dev/null
+            SECRET_ARN=$(aws secretsmanager describe-secret --secret-id "$SECRET_NAME" --query ARN --output text)
+          fi
+
+          cat > /tmp/ft-sm-policy.json <<EOF
+          {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Effect": "Allow",
+              "Action": ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
+              "Resource": "${SECRET_ARN}"
+            }]
+          }
+          EOF
+          aws iam put-role-policy \
+            --role-name ecsTaskExecutionRole \
+            --policy-name FaultTraceSessionSecretAccess \
+            --policy-document file:///tmp/ft-sm-policy.json
+
           PRIMARY=$(jq -cn \
             --arg img "$IMAGE_URI" \
             --argjson port "$CONTAINER_PORT" \
-            --arg secret "$SESSION_SECRET" \
-            '{image:$img, containerPort:$port, environment:[
-              {name:"AUTH_MODE",value:"dev"},
-              {name:"AI_MODE",value:"local"},
-              {name:"SESSION_SECRET",value:$secret}
-            ]}')
+            --arg secretArn "$SECRET_ARN" \
+            '{image:$img, containerPort:$port,
+              environment:[
+                {name:"AUTH_MODE",value:"dev"},
+                {name:"AI_MODE",value:"local"}
+              ],
+              secrets:[
+                {name:"SESSION_SECRET", valueFrom:$secretArn}
+              ]
+            }')
 
           if aws ecs describe-express-gateway-service \
                --service-arn "arn:aws:ecs:${AWS_REGION}:${ACCOUNT_ID}:service/default/${SERVICE_NAME}" \

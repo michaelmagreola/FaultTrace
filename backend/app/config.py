@@ -73,15 +73,41 @@ class Settings(BaseSettings):
             origins = [o for o in origins if o != "*"]
         object.__setattr__(self, "cors_origins", origins)
 
+        # Known weak / documented placeholders — never accept as a live signing key.
+        weak_secrets = {
+            "",
+            "dev-only-faulttrace-session-secret-change-me",
+            "faulttrace-ecs-express-session-secret",
+            "faulttrace-apprunner-session-secret",
+            "replace-with-a-long-random-secret",
+        }
+
         secret = (self.session_secret or "").strip()
-        if not secret:
-            if self.auth_mode == "dev":
-                # Local demo fallback — override via SESSION_SECRET in .env
-                secret = "dev-only-faulttrace-session-secret-change-me"
-            else:
-                raise ValueError("SESSION_SECRET is required when AUTH_MODE is not dev")
+        allow_insecure = (self.auth_mode == "dev") and (
+            __import__("os").environ.get("ALLOW_INSECURE_DEV_SECRET", "").strip().lower()
+            in {"1", "true", "yes"}
+        )
+
+        if secret in weak_secrets or not secret:
+            if self.auth_mode != "dev":
+                raise ValueError(
+                    "SESSION_SECRET is required when AUTH_MODE is not dev "
+                    "(unset or placeholder secrets are not allowed)."
+                )
+            if not allow_insecure:
+                # Crash on boot rather than silently signing with a predictable key.
+                raise ValueError(
+                    "SESSION_SECRET is unset or equals a known placeholder. "
+                    "Set a long random SESSION_SECRET (or ALLOW_INSECURE_DEV_SECRET=1 "
+                    "for local-only demo)."
+                )
+            secret = "dev-only-faulttrace-session-secret-change-me"
+
+        if len(secret) < 32 and not allow_insecure:
+            raise ValueError("SESSION_SECRET must be at least 32 characters")
         if len(secret) < 16:
             raise ValueError("SESSION_SECRET must be at least 16 characters")
+
         object.__setattr__(self, "session_secret", secret)
         return self
 

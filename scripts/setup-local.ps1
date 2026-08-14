@@ -13,7 +13,17 @@ if (-not (Test-Path ".venv")) {
 & .\.venv\Scripts\pip.exe install -r requirements.txt
 if (-not (Test-Path ".env")) {
   Copy-Item ".env.example" ".env"
-  Write-Host "Created backend\.env from .env.example"
+  $rand = python -c "import secrets; print(secrets.token_urlsafe(48))"
+  $envText = Get-Content ".env" -Raw
+  $envText = $envText -replace "SESSION_SECRET=replace-with-a-long-random-secret", "SESSION_SECRET=$rand"
+  Set-Content -Path ".env" -Value $envText -NoNewline
+  Write-Host "Created backend\.env from .env.example (generated SESSION_SECRET)"
+} elseif (Select-String -Path ".env" -Pattern "SESSION_SECRET=replace-with-a-long-random-secret" -Quiet) {
+  $rand = python -c "import secrets; print(secrets.token_urlsafe(48))"
+  $envText = Get-Content ".env" -Raw
+  $envText = $envText -replace "SESSION_SECRET=replace-with-a-long-random-secret", "SESSION_SECRET=$rand"
+  Set-Content -Path ".env" -Value $envText -NoNewline
+  Write-Host "Replaced placeholder SESSION_SECRET in backend\.env"
 }
 & .\.venv\Scripts\python.exe -m app.seed
 Pop-Location
