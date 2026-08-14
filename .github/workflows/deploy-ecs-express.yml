@@ -152,6 +152,7 @@ jobs:
               --service-arn "arn:aws:ecs:${AWS_REGION}:${ACCOUNT_ID}:service/default/${SERVICE_NAME}" \
               --primary-container "$PRIMARY" \
               --health-check-path "/health" \
+              --monitor-mode TEXT-ONLY \
               --monitor-resources
           else
             echo "Creating Express Mode service..."
