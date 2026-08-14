@@ -75,12 +75,33 @@ jobs:
           sleep 10
 
       - name: Create or update Express Mode service
+        env:
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
         run: |
           set -e
+          if [ -z "${SESSION_SECRET}" ] || [ "${#SESSION_SECRET}" -lt 32 ]; then
+            echo "SESSION_SECRET GitHub secret must be set to a random value (>= 32 chars)."
+            exit 1
+          fi
+          # Refuse known placeholder / fallback strings if someone reintroduces them
+          case "$SESSION_SECRET" in
+            faulttrace-ecs-express-session-secret|dev-only-faulttrace-session-secret-change-me)
+              echo "SESSION_SECRET must not be a documented placeholder."
+              exit 1
+              ;;
+          esac
+
           EXEC_ARN="arn:aws:iam::${ACCOUNT_ID}:role/ecsTaskExecutionRole"
           INFRA_ARN="arn:aws:iam::${ACCOUNT_ID}:role/ecsInfrastructureRoleForExpressServices"
-          PRIMARY=$(jq -cn --arg img "$IMAGE_URI" --argjson port "$CONTAINER_PORT" \
-            '{image:$img, containerPort:$port, environment:[{name:"AUTH_MODE",value:"dev"},{name:"AI_MODE",value:"local"},{name:"SESSION_SECRET",value:"faulttrace-ecs-express-session-secret"}]}')
+          PRIMARY=$(jq -cn \
+            --arg img "$IMAGE_URI" \
+            --argjson port "$CONTAINER_PORT" \
+            --arg secret "$SESSION_SECRET" \
+            '{image:$img, containerPort:$port, environment:[
+              {name:"AUTH_MODE",value:"dev"},
+              {name:"AI_MODE",value:"local"},
+              {name:"SESSION_SECRET",value:$secret}
+            ]}')
 
           if aws ecs describe-express-gateway-service \
                --service-arn "arn:aws:ecs:${AWS_REGION}:${ACCOUNT_ID}:service/default/${SERVICE_NAME}" \
