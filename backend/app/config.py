@@ -1,8 +1,8 @@
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -16,7 +16,8 @@ class Settings(BaseSettings):
 
     app_name: str = "FaultTrace"
     database_url: str = "sqlite:///./faulttrace.db"
-    cors_origins: list[str] = Field(
+    # NoDecode: allow CORS_ORIGINS=* without pydantic-settings JSON-decoding the env value first.
+    cors_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: [
             "http://localhost:5173",
             "http://127.0.0.1:5173",

@@ -33,5 +33,5 @@ RUN mkdir -p /data
 
 EXPOSE 8080
 
-# Seed demo data on first boot, then serve API + SPA
-CMD ["sh", "-c", "python -m app.seed && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+# Seed demo data on first boot (non-blocking for /health), then serve API + SPA
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

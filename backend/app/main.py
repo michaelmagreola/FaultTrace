@@ -1,5 +1,7 @@
+import contextlib
 import logging
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -24,10 +26,33 @@ Base.metadata.create_all(bind=engine)
 ensure_sqlite_columns()
 migrate_plaintext_passwords()
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    import asyncio
+
+    async def _seed_bg() -> None:
+        try:
+            from app.seed import seed
+
+            await asyncio.to_thread(seed)
+            logging.getLogger(__name__).info("Demo seed complete")
+        except Exception:
+            logging.getLogger(__name__).exception("Demo seed failed (continuing)")
+
+    # Schedule seed without blocking /health for App Runner.
+    task = asyncio.create_task(_seed_bg())
+    yield
+    task.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+        await task
+
+
 app = FastAPI(
     title="FaultTrace API",
     description="Retrieval-grounded maintenance knowledge for plant technicians",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 register_exception_handlers(app)
