@@ -1,0 +1,1057 @@
+FaultTrace — Cursor conversation export (TODAY)
+Local date filter: 2026-08-09
+Title: FaultTrace application showcase
+Conversation ID: 1da7a225-96c8-43d6-bc23-d41d40d203fc
+Purpose: Upload to Claude — today's Q&A that advanced FaultTrace
+Note: Tool calls summarized as Actions; full code is in the repo.
+========================================================================
+
+------------------------------------------------------------------------
+USER (1)
+------------------------------------------------------------------------
+<timestamp>Sunday, Aug 9, 2026, 9:17 PM (UTC-4)</timestamp>
+<user_query>
+Does the FaultTrace have any of these done:                                                                                                                           "Add input validation to all forms"
+"Make the app mobile responsive"
+"Integrate [AI API/service] for [feature]"
+"Add user authentication"
+"Set up database and create the data models"
+</user_query>
+
+------------------------------------------------------------------------
+ASSISTANT (1)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Grep]
+
+------------------------------------------------------------------------
+ASSISTANT (2)
+------------------------------------------------------------------------
+**Yes — mostly done**, with a few caveats:
+
+| Item | Status | What’s in FaultTrace |
+|------|--------|----------------------|
+| **Add input validation to all forms** | Mostly done | Frontend `required` + types; backend Pydantic on search/close-out/feedback (lengths, `minutes_down >= 0`). Not every admin field is equally strict. |
+| **Make the app mobile responsive** | Done | Tablet-first layout, large touch targets, `viewport` meta, `@media (max-width: 640px)`. |
+| **Integrate AI API/service for [feature]** | Done locally / stubbed for AWS | Local embeddings + grounded summary for search; Bedrock path exists but not wired (`AI_MODE=local`). |
+| **Add user authentication** | Done (dev) | Login + roles (technician / supervisor / admin), server-enforced. Cognito not wired yet. |
+| **Set up database and create the data models** | Done | SQLAlchemy models (assets, work orders, employees, feedback, logins, embeddings). Local SQLite; Postgres/pgvector ready via compose. |
+
+So for a checklist, you can mark all five as addressed for the local demo. Next week’s work is mainly swapping stubs for Cognito, Bedrock, and real Postgres/pgvector.
+
+------------------------------------------------------------------------
+USER (2)
+------------------------------------------------------------------------
+<timestamp>Sunday, Aug 9, 2026, 9:19 PM (UTC-4)</timestamp>
+<user_query>
+To improve quality:
+"Please organize my project with: Clean folder structure, Professional README, Environment variables setup, Error handling throughout"
+</user_query>
+
+------------------------------------------------------------------------
+ASSISTANT (3)
+------------------------------------------------------------------------
+I'll audit the project structure, README, env setup, and error handling, then tighten each to a professional standard.
+
+Actions taken:
+[Tool: TodoWrite]
+[Tool: Glob]
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (4)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Glob]
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (5)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+[Tool: Grep]
+[Tool: Glob]
+
+------------------------------------------------------------------------
+ASSISTANT (6)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Grep]
+[Tool: Glob]
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (7)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Glob]
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (8)
+------------------------------------------------------------------------
+Implementing structure cleanup, env templates, global error handling, and a professional README.
+
+Actions taken:
+[Tool: TodoWrite]
+[Tool: Write -> C:\Users\micha\FaultTrace\backend\app\errors.py]
+[Tool: Write -> C:\Users\micha\FaultTrace\backend\app\config.py]
+[Tool: Edit -> C:\Users\micha\FaultTrace\backend\app\main.py]
+[Tool: Edit -> C:\Users\micha\FaultTrace\backend\app\db.py]
+[Tool: Edit -> C:\Users\micha\FaultTrace\backend\app\schemas.py]
+
+------------------------------------------------------------------------
+ASSISTANT (9)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\api.ts]
+[Tool: Write -> C:\Users\micha\FaultTrace\frontend\src\components\IssuesChart.tsx]
+[Tool: Delete -> C:\Users\micha\FaultTrace\frontend\src\IssuesChart.tsx]
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+[Tool: Write -> C:\Users\micha\FaultTrace\backend\.env.example]
+[Tool: Write -> C:\Users\micha\FaultTrace\frontend\.env.example]
+[Tool: Write -> C:\Users\micha\FaultTrace\.env.example]
+[Tool: Write -> C:\Users\micha\FaultTrace\scripts\setup-local.ps1]
+
+------------------------------------------------------------------------
+ASSISTANT (10)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Write -> C:\Users\micha\FaultTrace\README.md]
+[Tool: Edit -> C:\Users\micha\FaultTrace\.gitignore]
+[Tool: Read]
+[Tool: TodoWrite]
+
+------------------------------------------------------------------------
+ASSISTANT (11)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Shell] cd C:\Users\micha\FaultTrace\backend; .\.venv\Scripts\python.exe -c "from app.config import settings; from app.main import app; print(settin
+
+------------------------------------------------------------------------
+ASSISTANT (12)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Task]
+
+------------------------------------------------------------------------
+ASSISTANT (13)
+------------------------------------------------------------------------
+Quality pass is in place. Here’s what changed:
+
+### Clean folder structure
+- Documented layout in the README
+- Moved chart UI to `frontend/src/components/IssuesChart.tsx`
+- Added `scripts/setup-local.ps1` for one-command local setup
+- Centralized API errors in `backend/app/errors.py`
+
+### Professional README
+- Rewrote root `README.md` with purpose, structure, features, quick start, env table, error handling, responsible AI, and next-week roadmap
+
+### Environment variables
+- Expanded `backend/.env.example` (DB, auth, AI, CORS, retrieval, AWS stubs)
+- Added `frontend/.env.example` (`VITE_API_BASE`)
+- Added root `.env.example` pointing at both
+- Hardened `config.py` (mode literals, CORS parsing, retrieval bounds)
+
+### Error handling throughout
+- Global handlers: validation (422), HTTP, DB (503), unexpected (500)
+- DB session rollback on failure
+- Stronger close-out validation
+- Frontend `apiFetch` with clear offline / invalid-response / API `detail` messages
+
+Backend boot + pytest + frontend `tsc` all passed.
+
+------------------------------------------------------------------------
+USER (3)
+------------------------------------------------------------------------
+<timestamp>Sunday, Aug 9, 2026, 9:27 PM (UTC-4)</timestamp>
+<user_query>
+Show me project code
+</user_query>
+
+------------------------------------------------------------------------
+ASSISTANT (14)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: GetMcpTools]
+[Tool: Shell] Get-ChildItem -Path C:\Users\micha\FaultTrace -Recurse -File | Where-Object { $_.FullName -notmatch '\\(node_modules|\.venv|dist|\.git|__pyc
+
+------------------------------------------------------------------------
+ASSISTANT (15)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Glob]
+[Tool: CallMcpTool]
+
+------------------------------------------------------------------------
+ASSISTANT (16)
+------------------------------------------------------------------------
+Opened the main entry points in the editor: `README.md`, `backend/app/main.py`, and `frontend/src/App.tsx`.
+
+### Project map
+
+```text
+FaultTrace/
+├── README.md
+├── backend/app/
+│   ├── main.py              ← API entry
+│   ├── config.py / errors.py / db.py / auth.py
+│   ├── models.py / schemas.py
+│   ├── retrieval.py / generation.py / seed.py
+│   └── api/
+│       ├── search.py
+│       ├── work_orders.py
+│       ├── assets.py
+│       ├── feedback.py
+│       ├── auth.py / employees.py
+│       ├── issues.py
+│       ├── admin.py
+│       └── health.py
+├── frontend/src/
+│   ├── main.tsx / App.tsx   ← UI entry
+│   ├── api.ts
+│   ├── styles.css
+│   └── components/IssuesChart.tsx
+├── docs/  infra/  scripts/
+└── .github/workflows/
+```
+
+### Start here
+
+| What | Path |
+|------|------|
+| App UI | `frontend/src/App.tsx` |
+| API client | `frontend/src/api.ts` |
+| FastAPI app | `backend/app/main.py` |
+| Search | `backend/app/api/search.py` |
+| Embeddings | `backend/app/retrieval.py` |
+| Summary + refusal | `backend/app/generation.py` |
+| Data models | `backend/app/models.py` |
+| Env template | `backend/.env.example` |
+
+Tell me which area you want next (search, auth, supervisor, admin, or seed data) and I’ll walk through that code.
+
+------------------------------------------------------------------------
+USER (4)
+------------------------------------------------------------------------
+<timestamp>Sunday, Aug 9, 2026, 9:40 PM (UTC-4)</timestamp>
+<user_query>
+Give brief introduction of FaultTrace App, use case, problem it is solving
+</user_query>
+
+------------------------------------------------------------------------
+ASSISTANT (17)
+------------------------------------------------------------------------
+**FaultTrace** is a maintenance knowledge app for plant-floor technicians at Cardinal Precision, a contract CNC/assembly manufacturer.
+
+**The problem:** Years of work orders sit in a CMMS (and paper binders), but when a machine fails at 2 a.m., that history is hard to find. The same fault was written many ways — *spindle drift*, *spndl drift*, *SPIN-DRFT*, *axis wander* — so keyword search returns nothing or noise. Senior techs who “just know” the fix are retiring. On a bottleneck cell, that wasted hour stops the line.
+
+**The use case:** A technician types a symptom or fault code on a tablet at the machine. FaultTrace finds similar past work orders with semantic search, summarizes what fixed it before, and cites the work-order IDs. If nothing reliable matches, it says so instead of inventing a procedure. Close-outs are structured so the knowledge base improves. Supervisors see recurring faults and downtime for the weekly meeting.
+
+**In one line:** FaultTrace turns buried, messy maintenance history into a cited answer in under two minutes — so the floor doesn’t start from zero every time.
+
+------------------------------------------------------------------------
+USER (5)
+------------------------------------------------------------------------
+<timestamp>Sunday, Aug 9, 2026, 10:01 PM (UTC-4)</timestamp>
+<user_query>
+Help me export all the chats and answers on the conversation that helped in building FaultTrace, paste it into a text file so I can upload to Claude
+</user_query>
+
+------------------------------------------------------------------------
+ASSISTANT (18)
+------------------------------------------------------------------------
+I'll find the FaultTrace conversation transcripts and export the Q&A into a text file you can upload.
+
+Actions taken:
+[Tool: Glob]
+[Tool: SearchConversations]
+
+------------------------------------------------------------------------
+ASSISTANT (19)
+------------------------------------------------------------------------
+import json
+from pathlib import Path
+
+src = Path(r'C:\Users\micha\.cursor\projects\c-Users-micha-FaultTrace\agent-transcripts\1d
+
+Actions taken:
+[Tool: Shell] python -c "
+
+------------------------------------------------------------------------
+ASSISTANT (20)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Write -> C:\Users\micha\FaultTrace\scripts\export_conversation.py]
+
+------------------------------------------------------------------------
+ASSISTANT (21)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Shell] python C:\Users\micha\FaultTrace\scripts\export_conversation.py
+
+------------------------------------------------------------------------
+ASSISTANT (22)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+[Tool: Grep]
+
+------------------------------------------------------------------------
+ASSISTANT (23)
+------------------------------------------------------------------------
+The full chat includes a lot of RouteIQ work first. I'll create a FaultTrace-only export starting where that build began.
+
+Actions taken:
+[Tool: Grep]
+
+------------------------------------------------------------------------
+ASSISTANT (24)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\scripts\export_conversation.py]
+
+------------------------------------------------------------------------
+ASSISTANT (25)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Shell] python C:\Users\micha\FaultTrace\scripts\export_conversation.py
+[Tool: CallMcpTool]
+
+------------------------------------------------------------------------
+ASSISTANT (26)
+------------------------------------------------------------------------
+The FaultTrace-only filter didn't match — fixing the start-marker detection.
+import json
+from pathlib import Path
+src=Path(r'C:\Users\micha\.cursor\projects\c-Users-micha-FaultTrace\agent-transcripts\1da7a
+
+Actions taken:
+[Tool: Shell] python -c "
+
+------------------------------------------------------------------------
+ASSISTANT (27)
+------------------------------------------------------------------------
+from pathlib import Path
+import importlib.util
+spec=importlib.util.spec_from_file_location('ex', r'C:\Users\micha\FaultTrace\scr
+
+Actions taken:
+[Tool: Shell] python -c "
+
+------------------------------------------------------------------------
+ASSISTANT (28)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Write -> C:\Users\micha\FaultTrace\scripts\_debug_marker.py]
+[Tool: Shell] python C:\Users\micha\FaultTrace\scripts\_debug_marker.py
+
+------------------------------------------------------------------------
+ASSISTANT (29)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Write -> C:\Users\micha\FaultTrace\scripts\_debug_marker.py]
+
+------------------------------------------------------------------------
+ASSISTANT (30)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\scripts\export_conversation.py]
+[Tool: Shell] python C:\Users\micha\FaultTrace\scripts\export_conversation.py; Remove-Item C:\Users\micha\FaultTrace\scripts\_debug_marker.py -Force
+
+------------------------------------------------------------------------
+ASSISTANT (31)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Shell] python C:\Users\micha\FaultTrace\scripts\export_conversation.py
+
+------------------------------------------------------------------------
+ASSISTANT (32)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: CallMcpTool]
+[Tool: Delete -> C:\Users\micha\FaultTrace\scripts\_debug_marker.py]
+
+------------------------------------------------------------------------
+ASSISTANT (33)
+------------------------------------------------------------------------
+Exported. Use this one for Claude:
+
+**`C:\Users\micha\Downloads\FaultTrace_Only_Conversation_Export.txt`** (~105 KB)  
+FaultTrace build only — 37 user turns, 175 assistant turns (RouteIQ omitted)
+
+Also saved:
+- Same copy: `C:\Users\micha\FaultTrace\docs\FaultTrace_Only_Conversation_Export.txt`
+- Full thread (includes RouteIQ): `C:\Users\micha\Downloads\FaultTrace_Build_Conversation_Export.txt` (~181 KB)
+
+Tool calls are summarized as “Actions taken” so the file stays readable; full code is in the repo.
+
+------------------------------------------------------------------------
+USER (6)
+------------------------------------------------------------------------
+<timestamp>Sunday, Aug 9, 2026, 10:37 PM (UTC-4)</timestamp>
+<user_query>
+List every feature, button, form field, and route in FaultTrace that needs testing. Give me a numbered checklist I can click through, including invalid input cases and mobile widths.
+</user_query>
+
+------------------------------------------------------------------------
+ASSISTANT (34)
+------------------------------------------------------------------------
+I'll audit the UI and API surface so the checklist matches what's actually in FaultTrace.
+
+Actions taken:
+[Tool: Grep]
+
+------------------------------------------------------------------------
+ASSISTANT (35)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (36)
+------------------------------------------------------------------------
+FaultTrace click-through test plan — use **http://127.0.0.1:5173** with API on **:8000**. Demo password: **`ADMIN`**.
+
+---
+
+### A. Environment & shell
+1. [ ] Backend up (`/health` returns ok)
+2. [ ] Frontend loads without console errors
+3. [ ] Banner dismiss (X) clears error/success toast when shown
+4. [ ] Footer shows **Cardinal Precision** + slogan on login and in-app
+
+---
+
+### B. Login (form)
+5. [ ] Fields: **Role**, **Email**, **Password**, **Sign in**
+6. [ ] Role = Technician → email `tech@cardinal.local` → password `ADMIN` → welcome + floor tabs only
+7. [ ] Role = Supervisor → `planner@cardinal.local` → `ADMIN` → Supervisor tab visible, Admin hidden
+8. [ ] Role = Admin → `admin@cardinal.local` → `ADMIN` → Supervisor + Admin visible
+9. [ ] Email datalist suggests employees for selected role
+10. [ ] Valid email resolves **Signed identity: …**
+11. [ ] Wrong role + known email → “No active … with that email”
+12. [ ] Wrong password → login error, stay on login
+13. [ ] Empty email / empty password → browser required validation
+14. [ ] Invalid email format → blocked or API error
+15. [ ] Unknown email → 401-style message
+16. [ ] **Sign out** returns to login; session cleared
+
+---
+
+### C. Role gating (after login)
+17. [ ] Technician: tabs = Search, Close-out, Asset history only
+18. [ ] Supervisor: + Supervisor; no Admin
+19. [ ] Admin: all five tabs
+20. [ ] Direct API as technician to `/api/admin/status` → 403 (optional API check)
+
+---
+
+### D. Search tab
+21. [ ] Fields: **Asset filter**, **What are you seeing?**, **Search history**
+22. [ ] Asset filter = All assets
+23. [ ] Asset filter = specific asset (e.g. CNC-12)
+24. [ ] Query `spndl drift` → ranked hits + grounded summary + citations
+25. [ ] Query `axis wander` → related hits
+26. [ ] Query `SPIN-DRFT` → related hits
+27. [ ] Enter in textarea submits search
+28. [ ] Empty query → required / validation error
+29. [ ] 1-character query → validation error (min length 2)
+30. [ ] Nonsense query (e.g. `zzzzqwerty999`) → **Nothing reliable found** / refusal
+31. [ ] Safety links open new tab:
+    - [ ] LOTO CNC (`/safety/loto-cnc.html`)
+    - [ ] Haas VF-2 index (`/safety/haas-vf2-index.html`)
+    - [ ] PPE floor (`/safety/ppe-floor.html`)
+32. [ ] **Mark useful** on a citation → count increments; button → “Marked useful”
+33. [ ] **Mark useful** on a hit card (same behavior)
+34. [ ] Mark same item twice → disabled / no double-count spam
+
+---
+
+### E. Close-out tab
+35. [ ] Fields: **Asset**, **Fault code**, **Symptom**, **Cause**, **Fix**, **Parts used**, **Minutes down**, **Save close-out**
+36. [ ] Happy path: fill all → success message + new WO id
+37. [ ] Search again for that symptom → new close-out appears in results
+38. [ ] Empty asset → blocked
+39. [ ] Empty symptom / cause / fix → blocked (required / min length)
+40. [ ] Symptom 1 char → validation error
+41. [ ] Minutes down = `-1` → rejected
+42. [ ] Minutes down = `0` → allowed
+43. [ ] Minutes down huge (`999999`) → rejected if over 10080
+44. [ ] Parts optional empty → still saves
+
+---
+
+### F. Asset history tab
+45. [ ] Fields: **Asset**, **Search this asset**, **Search**, **Clear**, history table/list
+46. [ ] Select asset → history loads (or Load)
+47. [ ] Asset-scoped search returns only that asset’s hits
+48. [ ] Enter submits asset search
+49. [ ] Search with no asset selected → error “Select an asset first”
+50. [ ] **Clear** clears query / asset-search results
+51. [ ] Empty query with asset → validation error
+52. [ ] Mark useful from history search results (if shown)
+
+---
+
+### G. Supervisor tab (supervisor + admin)
+53. [ ] **Refresh dashboard** reloads KPIs / tables
+54. [ ] **Copy meeting brief** copies text (or shows fallback error)
+55. [ ] Chart periods: **Daily** / **Weekly** / **Monthly** switch data
+56. [ ] KPIs show: minutes down, work orders, assets, useful votes
+57. [ ] Recommended actions list renders
+58. [ ] **Open history** on an action → jumps to Asset history for that asset
+59. [ ] Sections visible: meeting brief, parts to stock, recurring faults, downtime by asset, downtime by cause, useful cases
+60. [ ] Linkish asset/fault controls jump to history or filter as designed
+61. [ ] Mark useful on useful-cases list (if button present)
+62. [ ] Technician never sees this tab
+
+---
+
+### H. Admin tab (admin only)
+63. [ ] **Refresh console** updates status / logins / feedback
+64. [ ] **Re-embed all work orders** → success toast with count
+65. [ ] System KPIs: auth/ai, assets, WOs, feedback, sign-ins
+66. [ ] Role directory table populated
+67. [ ] **Who signed in**: after another user logs in + Refresh → newest row appears with local time
+68. [ ] Feedback audit table lists Mark useful events
+69. [ ] Supervisor cannot open Admin tab / `/api/admin/*` → 403
+
+**Add employee form**
+70. [ ] Fields: Full name, Email, Role, Floor, Function, Rank, Shift (Day/Night), **Add employee**
+71. [ ] Valid new employee → appears in list
+72. [ ] New employee can log in with `ADMIN`
+73. [ ] Duplicate email → 409 / error
+74. [ ] Invalid email → error
+75. [ ] Empty name → blocked
+76. [ ] **Deactivate / Activate** (linkish) toggles active; inactive cannot log in
+
+**Add asset form**
+77. [ ] Fields: Code, Name, Area, **Add asset**
+78. [ ] New asset appears in Search / Close-out / History dropdowns
+79. [ ] Duplicate code → error
+80. [ ] Empty code/name → blocked
+
+---
+
+### I. API routes to spot-check (optional Postman/docs)
+81. [ ] `GET /health`
+82. [ ] `GET /api/employees`
+83. [ ] `GET /api/auth/resolve?role=&email=`
+84. [ ] `POST /api/auth/login`
+85. [ ] `POST /api/search`
+86. [ ] `POST /api/work-orders/close-out`
+87. [ ] `GET /api/assets`
+88. [ ] `GET /api/assets/{code}/history`
+89. [ ] `POST /api/feedback/useful`
+90. [ ] `GET /api/supervisor/overview`
+91. [ ] `GET /api/supervisor/recurring`
+92. [ ] `GET /api/supervisor/downtime`
+93. [ ] `GET /api/supervisor/issues-trend?period=daily|weekly|monthly`
+94. [ ] `GET /api/admin/status|employees|logins|feedback|roles`
+95. [ ] `POST /api/admin/employees` · `PATCH /api/admin/employees/{id}`
+96. [ ] `POST /api/admin/assets` · `POST /api/admin/reembed`
+
+---
+
+### J. Mobile / responsive widths
+Test each critical path at these widths (DevTools device mode):
+
+| Width | Device hint |
+|------:|-------------|
+| 375 | iPhone SE |
+| 390 | iPhone 14 |
+| 768 | tablet portrait |
+| 1024 | tablet landscape |
+
+97. [ ] **375** — Login: fields/buttons ≥ ~44px, no horizontal scroll, brand footer readable  
+98. [ ] **375** — Tabs wrap; Search form usable with gloves-size targets  
+99. [ ] **375** — Close-out full form scrollable; Save reachable  
+100. [ ] **375** — Supervisor tables scroll / don’t overflow viewport badly  
+101. [ ] **375** — Admin forms + tables usable  
+102. [ ] **390** — Same smoke as 375 (login → search → mark useful)  
+103. [ ] **768** — Topbar/session layout OK; chart bars readable  
+104. [ ] **1024** — Desktop-like layout; no clipped primary buttons  
+105. [ ] Landscape phone (~844×390): login + search still usable  
+106. [ ] Touch: no hover-only critical actions
+
+---
+
+### K. Cross-cutting / negative
+107. [ ] Stop API → UI shows “Cannot reach the FaultTrace API…”
+108. [ ] Restart API → recovery after retry  
+109. [ ] Busy buttons disable / show “Searching…”, “Signing in…”, etc.  
+110. [ ] Safety pages never invent procedures in search summary text  
+
+---
+
+**Suggested pass order:** B → D → E → F → G (supervisor) → H (admin) → J (375 + 768) → K.
+
+------------------------------------------------------------------------
+USER (7)
+------------------------------------------------------------------------
+<timestamp>Sunday, Aug 9, 2026, 10:45 PM (UTC-4)</timestamp>
+<user_query>
+Perform a complete security audit on FaultTrace. Check for exposed secrets, SQL injection, insecure authentication and password handling, missing authorization on endpoints, CORS misconfiguration, and unsafe data handling. List each finding with severity, then fix them.
+</user_query>
+
+------------------------------------------------------------------------
+ASSISTANT (37)
+------------------------------------------------------------------------
+I'll run a full security audit against the FaultTrace codebase, then fix the issues we find.
+
+Actions taken:
+[Tool: Read]
+[Tool: Task]
+
+------------------------------------------------------------------------
+ASSISTANT (38)
+------------------------------------------------------------------------
+The review subagent couldn't diff (no git history). I'll audit the full codebase directly, then apply fixes.
+
+Actions taken:
+[Tool: Read]
+[Tool: Grep]
+
+------------------------------------------------------------------------
+ASSISTANT (39)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+[Tool: TodoWrite]
+
+------------------------------------------------------------------------
+ASSISTANT (40)
+------------------------------------------------------------------------
+Implementing session tokens, password hashing, and related hardening next.
+
+Actions taken:
+[Tool: Write -> C:\Users\micha\FaultTrace\backend\app\security.py]
+[Tool: Write -> C:\Users\micha\FaultTrace\backend\app\auth.py]
+[Tool: Write -> C:\Users\micha\FaultTrace\backend\app\config.py]
+
+------------------------------------------------------------------------
+ASSISTANT (41)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Write -> C:\Users\micha\FaultTrace\backend\app\api\auth.py]
+[Tool: Edit -> C:\Users\micha\FaultTrace\backend\app\models.py]
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (42)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\backend\app\seed.py]
+[Tool: Edit -> C:\Users\micha\FaultTrace\backend\app\api\admin.py]
+[Tool: Write -> C:\Users\micha\FaultTrace\backend\app\api\employees.py]
+[Tool: Edit -> C:\Users\micha\FaultTrace\backend\app\db.py]
+[Tool: Write -> C:\Users\micha\FaultTrace\backend\app\main.py]
+
+------------------------------------------------------------------------
+ASSISTANT (43)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+[Tool: Grep]
+
+------------------------------------------------------------------------
+ASSISTANT (44)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\api.ts]
+
+------------------------------------------------------------------------
+ASSISTANT (45)
+------------------------------------------------------------------------
+from pathlib import Path
+p = Path(r'C:\Users\micha\FaultTrace\frontend\src\App.tsx')
+t = p.read_text(encoding='utf-8')
+# Replace
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+[Tool: Shell] python -c "
+
+------------------------------------------------------------------------
+ASSISTANT (46)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Write -> C:\Users\micha\FaultTrace\scripts\_patch_app_auth.py]
+[Tool: Shell] python C:\Users\micha\FaultTrace\scripts\_patch_app_auth.py
+
+------------------------------------------------------------------------
+ASSISTANT (47)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Grep]
+[Tool: Edit -> C:\Users\micha\FaultTrace\backend\.env.example]
+[Tool: Edit -> C:\Users\micha\FaultTrace\backend\.env]
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+[Tool: Delete -> C:\Users\micha\FaultTrace\scripts\_patch_app_auth.py]
+
+------------------------------------------------------------------------
+ASSISTANT (48)
+------------------------------------------------------------------------
+from app.config import get_settings
+get_settings.cache_clear()
+from ap
+
+Actions taken:
+[Tool: Shell] cd C:\Users\micha\FaultTrace\backend; .\.venv\Scripts\python.exe -c "
+[Tool: Edit -> C:\Users\micha\FaultTrace\README.md]
+[Tool: TodoWrite]
+
+------------------------------------------------------------------------
+ASSISTANT (49)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Task]
+
+------------------------------------------------------------------------
+ASSISTANT (50)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Glob]
+[Tool: Edit -> C:\Users\micha\FaultTrace\README.md]
+
+------------------------------------------------------------------------
+ASSISTANT (51)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Grep]
+[Tool: Edit -> C:\Users\micha\FaultTrace\README.md]
+
+------------------------------------------------------------------------
+ASSISTANT (52)
+------------------------------------------------------------------------
+## Security audit findings
+
+| Severity | Finding | Status |
+|----------|---------|--------|
+| **Critical** | Role spoofing: `X-FaultTrace-Role: admin` granted admin without login | **Fixed** |
+| **High** | Passwords stored/compared in plaintext (`ADMIN`) | **Fixed** |
+| **High** | Login issued no session — UI “auth” was client-trusted headers | **Fixed** |
+| **Medium** | Public `/api/employees` exposed floor/rank/function | **Fixed** (minimal fields) |
+| **Medium** | No login rate limiting (brute force) | **Fixed** |
+| **Medium** | Password prefilled as `ADMIN` in the UI | **Fixed** |
+| **Low** | CORS allowed any method/header; wildcard risk | **Hardened** |
+| **Low** | Missing security response headers | **Fixed** |
+| **Info** | Shared demo password `ADMIN` still used for workshop accounts | Accepted for local demo; Cognito next week |
+| **Info** | SQL injection | **No issue** — SQLAlchemy ORM; static migration SQL only |
+| **Info** | XSS in React UI | **No issue** — no `dangerouslySetInnerHTML` |
+
+---
+
+## What we fixed
+
+1. **Signed session tokens** — login returns `session_token`; API requires `Authorization: Bearer …`. Spoofed role headers now get **401**.
+2. **PBKDF2 password hashing** — seed/create hash passwords; boot migrates legacy plaintext; `hmac.compare_digest` for checks.
+3. **Login rate limit** — 10 attempts / 5 minutes per client IP → **429**.
+4. **Generic login errors** — no account enumeration via distinct messages.
+5. **Public directory minimized** — only `id`, `email`, `full_name`, `role`, `active`.
+6. **CORS tightened** — explicit methods/headers; `*` origins stripped; credentials kept for localhost only.
+7. **Security headers** — `nosniff`, `DENY` framing, referrer policy, `no-store` on API.
+8. **Frontend** — stores/sends Bearer token; password field no longer prefilled.
+
+Demo login is unchanged: password still **`ADMIN`** (now hashed at rest). Restart the API if it’s already running so migration + new auth load.
+
+------------------------------------------------------------------------
+USER (8)
+------------------------------------------------------------------------
+<timestamp>Sunday, Aug 9, 2026, 10:54 PM (UTC-4)</timestamp>
+<user_query>
+Audit FaultTrace for accessibility. Add keyboard navigation, focus states, ARIA labels, and check color contrast. List what you changed.
+</user_query>
+
+------------------------------------------------------------------------
+ASSISTANT (53)
+------------------------------------------------------------------------
+I'll audit the UI for keyboard, focus, ARIA, and contrast, then apply focused fixes.
+
+Actions taken:
+[Tool: Read]
+[Tool: Grep]
+
+------------------------------------------------------------------------
+ASSISTANT (54)
+------------------------------------------------------------------------
+Implementing skip links, focus styles, ARIA on tabs/forms, and stronger contrast.
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\styles.css]
+
+------------------------------------------------------------------------
+ASSISTANT (55)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Grep]
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (56)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (57)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\styles.css]
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+
+------------------------------------------------------------------------
+ASSISTANT (58)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+
+------------------------------------------------------------------------
+ASSISTANT (59)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+[Tool: Grep]
+[Tool: Write -> C:\Users\micha\FaultTrace\frontend\src\components\IssuesChart.tsx]
+
+------------------------------------------------------------------------
+ASSISTANT (60)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (61)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+[Tool: Grep]
+
+------------------------------------------------------------------------
+ASSISTANT (62)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (63)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Task]
+
+------------------------------------------------------------------------
+ASSISTANT (64)
+------------------------------------------------------------------------
+## Accessibility changes
+
+### Keyboard navigation
+- **Skip links** — “Skip to sign in” / “Skip to main content”
+- **App tabs** — `role="tablist"` with Arrow Left/Right, Home, End; roving `tabIndex`
+- **Chart period tabs** — same arrow-key pattern
+- Search still supports **Enter to submit** (Shift+Enter for newline), with a screen-reader hint
+
+### Focus states
+- Visible **`:focus-visible`** rings on buttons, tabs, inputs, links
+- Stronger focus on active dark tabs/periods
+- Dismiss control is a real bordered button (easier to see/focus)
+
+### ARIA labels & structure
+- Login fields: `htmlFor`/`id`, `aria-invalid`, `aria-describedby`, `role="alert"` / `status`
+- Main panel: `role="tabpanel"`, `aria-labelledby` current tab
+- Sections: `aria-labelledby` on Search, Close-out, History, Supervisor, Admin
+- Banners: `role="alert"` (errors) / `status` (toasts) + live regions
+- Sign out, Mark useful, Dismiss: clearer `aria-label` / `aria-pressed`
+- Safety links: “opens in new tab” (`.sr-only`)
+- Chart: `aria-label` on graphic + table `caption` / `scope`
+
+### Color contrast
+- **Muted text** darkened (`#5a6a7a` → `#3d4d5c`)
+- **Accent** darkened (`#0f6e56` → `#0b5c48`) for AA on light backgrounds
+- Input borders / placeholders / pills darkened for readable contrast
+- Underlines on safety links and link-buttons
+
+### Other
+- `prefers-reduced-motion` respected
+- `.sr-only` utility added
+
+Files touched: `frontend/src/styles.css`, `frontend/src/App.tsx`, `frontend/src/components/IssuesChart.tsx`.
+
+------------------------------------------------------------------------
+USER (9)
+------------------------------------------------------------------------
+<timestamp>Sunday, Aug 9, 2026, 10:58 PM (UTC-4)</timestamp>
+<user_query>
+Add error handling to prevent crashes throughout the app" if the audit surfaces uncovered paths
+</user_query>
+
+------------------------------------------------------------------------
+ASSISTANT (65)
+------------------------------------------------------------------------
+I'll scan for unhandled crash paths and harden the app with boundaries and safer error handling.
+
+Actions taken:
+[Tool: Grep]
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (66)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+[Tool: Grep]
+
+------------------------------------------------------------------------
+ASSISTANT (67)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+[Tool: Write -> C:\Users\micha\FaultTrace\frontend\src\components\ErrorBoundary.tsx]
+[Tool: Write -> C:\Users\micha\FaultTrace\frontend\src\lib\errors.ts]
+
+------------------------------------------------------------------------
+ASSISTANT (68)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\api.ts]
+[Tool: Write -> C:\Users\micha\FaultTrace\frontend\src\main.tsx]
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+
+------------------------------------------------------------------------
+ASSISTANT (69)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+[Tool: Grep]
+
+------------------------------------------------------------------------
+ASSISTANT (70)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\api.ts]
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+
+------------------------------------------------------------------------
+ASSISTANT (71)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\components\IssuesChart.tsx]
+[Tool: Edit -> C:\Users\micha\FaultTrace\backend\app\api\search.py]
+
+------------------------------------------------------------------------
+ASSISTANT (72)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+[Tool: Grep]
+[Tool: Edit -> C:\Users\micha\FaultTrace\README.md]
+
+------------------------------------------------------------------------
+ASSISTANT (73)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+[Tool: Grep]
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+
+------------------------------------------------------------------------
+ASSISTANT (74)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Edit -> C:\Users\micha\FaultTrace\frontend\src\App.tsx]
+[Tool: Edit -> C:\Users\micha\FaultTrace\backend\app\api\assets.py]
+[Tool: Task]
+
+------------------------------------------------------------------------
+ASSISTANT (75)
+------------------------------------------------------------------------
+
+Actions taken:
+[Tool: Read]
+
+------------------------------------------------------------------------
+ASSISTANT (76)
+------------------------------------------------------------------------
+Hardened crash paths that audits left open. Summary of changes:
+
+### Frontend
+- **ErrorBoundary** — render crashes show a recovery screen (Try again / Reload) instead of a blank app
+- **Safe boot** — missing `#root` no longer throws; shows a clear start error
+- **Global listeners** — log `unhandledrejection` / `window.error` without taking down the UI
+- **`ApiError` + 401 recovery** — expired/invalid sessions clear auth and return to sign-in
+- **`reportError` / `toErrorMessage`** — all async flows use consistent, non-throwing error reporting
+- **Safe lists** — `citations`, `hits`, supervisor arrays, history, etc. use `?? []` so bad API shapes don’t crash maps
+- **Safe numbers** — `score.toFixed` guarded with `Number.isFinite`
+- **IssuesChart** — tolerates missing/invalid buckets and counts
+
+### Backend
+- Search / supervisor overview **rollback + re-raise** on unexpected failures (global handlers still return JSON 500/503, not process crashes)
+- Search payload null-safe fields
+
+Async handlers were already mostly try/catch; the gaps were **render crashes**, **401 mid-session**, and **undefined array/number access**.
+
+------------------------------------------------------------------------
+USER (10)
+------------------------------------------------------------------------
+<timestamp>Sunday, Aug 9, 2026, 11:08 PM (UTC-4)</timestamp>
+<user_query>
+Help me export all the chats and answers on the conversation today that helped in building FaultTrace, paste it into a text file so I can upload to Claude
+</user_query>
+
+========================================================================
+Export complete. User turns: 10 | Assistant turns: 76

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FaultTrace Demo Teleprompter — 4:00</title>
+  <style>
+    :root {
+      --bg: #0f1720;
+      --card: #1a2430;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #14b8a6;
+      --warn: #fbbf24;
+      --say: #7dd3fc;
+      --do: #86efac;
+      --line: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(15, 23, 32, 0.96);
+      border-bottom: 1px solid var(--line);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 0.9rem;
+    }
+    button, select {
+      font: inherit;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      padding: 0.45rem 0.8rem;
+      cursor: pointer;
+      min-height: 40px;
+    }
+    button.primary {
+      background: var(--accent);
+      color: #042f2e;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+    #timer {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      color: var(--warn);
+      min-width: 4.5rem;
+    }
+    main {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 4rem;
+    }
+    .prep {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      margin-bottom: 1.25rem;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 0.95rem;
+    }
+    .prep h2 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--warn); }
+    .prep ul { margin: 0; padding-left: 1.2rem; }
+    .beat {
+      border-left: 4px solid var(--accent);
+      padding: 0.85rem 0 0.85rem 1rem;
+      margin: 0 0 0.35rem;
+      scroll-margin-top: 5rem;
+    }
+    .beat.active {
+      background: rgba(20, 184, 166, 0.1);
+      border-radius: 0 10px 10px 0;
+    }
+    .time {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+    .say {
+      color: var(--say);
+      font-size: 1.35rem;
+      margin: 0.35rem 0;
+    }
+    .say::before {
+      content: "SAY · ";
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .do {
+      color: var(--do);
+      font-size: 1.15rem;
+      margin: 0.35rem 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .do::before {
+      content: "DO · ";
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .note {
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      margin: 0.25rem 0 0;
+    }
+    .never {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border: 1px dashed var(--warn);
+      border-radius: 12px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .paste {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.65rem;
+    }
+    .paste code {
+      background: #0b1220;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: 1px solid var(--line);
+    }
+    .paste code:hover { border-color: var(--accent); }
+    footer {
+      margin-top: 2rem;
+      color: var(--muted);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FaultTrace demo teleprompter · target 4:00</h1>
+    <div class="controls">
+      <span id="timer">0:00</span>
+      <button type="button" class="primary" id="startBtn">Start timer</button>
+      <button type="button" id="resetBtn">Reset</button>
+      <label>
+        Font
+        <select id="fontSize">
+          <option value="1">Normal</option>
+          <option value="1.15" selected>Large</option>
+          <option value="1.3">XL</option>
+        </select>
+      </label>
+      <button type="button" id="prevBtn">Prev beat</button>
+      <button type="button" id="nextBtn">Next beat</button>
+    </div>
+  </header>
+
+  <main id="prompter" style="font-size: 1.15rem">
+    <section class="prep">
+      <h2>Before you hit record</h2>
+      <ul>
+        <li>Restart backend (password migration + session auth need a fresh process)</li>
+        <li>If search empty: <code>cd backend</code> → <code>python -m app.seed</code></li>
+        <li>Two terminals open (stop/restart API on camera)</li>
+        <li>App: <code>http://127.0.0.1:5173</code> · zoom <strong>110%</strong> · clean window</li>
+        <li>20s mic test first</li>
+      </ul>
+      <div class="paste" title="Click to copy">
+        <code data-copy="tech@cardinal.local">tech@cardinal.local</code>
+        <code data-copy="planner@cardinal.local">planner@cardinal.local</code>
+        <code data-copy="admin@cardinal.local">admin@cardinal.local</code>
+        <code data-copy="ADMIN">ADMIN</code>
+      </div>
+    </section>
+
+    <article class="beat" data-start="0" data-end="20">
+      <div class="time">0:00 – 0:20 · Open</div>
+      <p class="say">This is FaultTrace, a maintenance knowledge system for plant floor technicians at Cardinal Precision. React and TypeScript on the front, FastAPI and SQLAlchemy on the back. I'll go through every feature, valid and invalid inputs, error handling, and keyboard access.</p>
+      <p class="do">Show the login screen. Do not narrate the stack twice.</p>
+    </article>
+
+    <article class="beat" data-start="20" data-end="55">
+      <div class="time">0:20 – 0:55 · Login (invalid → keyboard → tech)</div>
+      <p class="do">Submit empty email — browser validation blocks it.</p>
+      <p class="do">Role Technician + <code>admin@cardinal.local</code> — show no active user for that email.</p>
+      <p class="do">Correct email, wrong password — error, stay on login.</p>
+      <p class="say">Errors are generic on purpose. They don't reveal whether an account exists.</p>
+      <p class="do"><strong>A11y #1:</strong> Tab from top — point at skip link. Tab Role → Email → Password → Sign in. Visible focus rings.</p>
+      <p class="do">Sign in <code>tech@cardinal.local</code> / <code>ADMIN</code> with <strong>Enter</strong>.</p>
+      <p class="do">Show Welcome Jordan · only Search, Close-out, Asset history.</p>
+      <p class="say">No Supervisor or Admin tab. Role is enforced on the server, not hidden in the UI.</p>
+    </article>
+
+    <article class="beat" data-start="55" data-end="105">
+      <div class="time">0:55 – 1:45 · Search</div>
+      <p class="do">Type <code>spndl drift</code>, Enter in textarea.</p>
+      <p class="say">Enter submits, Shift and Enter gives a newline.</p>
+      <p class="do">Point at cited work-order IDs.</p>
+      <p class="say">Every answer cites the work orders behind it.</p>
+      <p class="do">Search <code>axis wander</code> — same failure, different words. <span class="note">(Cut this first if long.)</span></p>
+      <p class="say">That's the whole reason this app exists. Keyword search misses this.</p>
+      <p class="do">Invalid: single char <code>x</code> → min length. Then <code>zzzzqwerty999</code> → refusal.</p>
+      <p class="say">It says nothing reliable matched instead of inventing a repair procedure.</p>
+      <p class="do">Mark useful on a citation — count + button state.</p>
+      <p class="do">Open one safety link → controlled page, not generated. Close tab, return.</p>
+      <p class="say">Safety documents are controlled pages. The model never generates a procedure.</p>
+    </article>
+
+    <article class="beat" data-start="105" data-end="135">
+      <div class="time">1:45 – 2:15 · Close-out</div>
+      <p class="do">Open Close-out. Submit empty → required fields.</p>
+      <p class="do">Minutes <code>-1</code> → rejected. Minutes <code>999999</code> → over cap rejected.</p>
+      <p class="do">Fill valid: asset, fault, symptom, cause, fix, parts, minutes <code>45</code>. Save. Show WO id.</p>
+      <p class="do">Search that symptom — new record appears.</p>
+      <p class="say">The close-out is re-embedded immediately, so the corpus improves with use.</p>
+    </article>
+
+    <article class="beat" data-start="135" data-end="155">
+      <div class="time">2:15 – 2:35 · Asset history</div>
+      <p class="do">Pick an asset — timeline loads.</p>
+      <p class="do">Search with empty query → validation error.</p>
+      <p class="do">Type symptom, Enter — results scoped to that asset. Click Clear.</p>
+    </article>
+
+    <article class="beat" data-start="155" data-end="190">
+      <div class="time">2:35 – 3:10 · Supervisor</div>
+      <p class="do">Sign out → <code>planner@cardinal.local</code> / <code>ADMIN</code>.</p>
+      <p class="do">Supervisor tab present; Admin absent. Point at KPI strip.</p>
+      <p class="do"><strong>A11y #2:</strong> Focus chart periods → Arrow keys Daily / Weekly / Monthly.</p>
+      <p class="say">Tabs follow the ARIA tablist pattern. Arrow keys, Home and End all work.</p>
+      <p class="do">Show recurring faults, parts to stock, downtime by asset &amp; cause.</p>
+      <p class="do">Copy meeting brief → confirmation. <span class="note">(Cut if long.)</span></p>
+    </article>
+
+    <article class="beat" data-start="190" data-end="220">
+      <div class="time">3:10 – 3:40 · Admin</div>
+      <p class="do">Sign out → <code>admin@cardinal.local</code> / <code>ADMIN</code>. All five tabs.</p>
+      <p class="do">Who signed in — tech + planner from this recording, local times.</p>
+      <p class="say">Every sign-in is logged in UTC and displayed local.</p>
+      <p class="do">Add employee: duplicate email error, then valid add → directory.</p>
+      <p class="do">Re-embed all work orders → success count. <span class="note">(Cut if long.)</span></p>
+      <p class="note">Optional: <code>:8000/docs</code> admin call without token → 401. Cut first if over time.</p>
+    </article>
+
+    <article class="beat" data-start="220" data-end="235">
+      <div class="time">3:40 – 3:55 · Error handling (never cut)</div>
+      <p class="do">Leave browser open. Terminal: stop backend (Ctrl+C).</p>
+      <p class="do">Search again → “Cannot reach the FaultTrace API…”</p>
+      <p class="say">No blank screen, no crash. The app tells you what happened.</p>
+      <p class="do">Restart backend. Retry search. Show recovery.</p>
+    </article>
+
+    <article class="beat" data-start="235" data-end="240">
+      <div class="time">3:55 – 4:00 · Close</div>
+      <p class="say">Every feature, valid and invalid inputs, error handling, and keyboard access. All 110 checklist items pass.</p>
+      <p class="do">Stop recording.</p>
+    </article>
+
+    <section class="never">
+      <strong>Never cut:</strong> refusal case · citations · both keyboard segments · API stop/recover<br />
+      <strong>Cut first if long:</strong> optional 401 · copy brief · axis wander · re-embed
+    </section>
+
+    <footer>
+      Place this window on a second monitor. Use Next beat (or N) while you record the browser on the main screen.<br />
+      App: http://127.0.0.1:5173 · API: http://127.0.0.1:8000
+    </footer>
+  </main>
+
+  <script>
+    const beats = [...document.querySelectorAll(".beat")];
+    let idx = 0;
+    let startedAt = null;
+    let timerId = null;
+
+    const timerEl = document.getElementById("timer");
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const fontSize = document.getElementById("fontSize");
+    const prompter = document.getElementById("prompter");
+
+    function fmt(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2, "0")}`;
+    }
+
+    function setActive(i) {
+      idx = Math.max(0, Math.min(beats.length - 1, i));
+      beats.forEach((b, n) => b.classList.toggle("active", n === idx));
+      beats[idx].scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function tick() {
+      if (startedAt == null) return;
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      timerEl.textContent = fmt(elapsed);
+      const match = beats.findIndex((b) => {
+        const a = Number(b.dataset.start);
+        const e = Number(b.dataset.end);
+        return elapsed >= a && elapsed < e;
+      });
+      if (match >= 0 && match !== idx) setActive(match);
+      if (elapsed >= 240) timerEl.style.color = "#f87171";
+    }
+
+    startBtn.addEventListener("click", () => {
+      if (timerId) return;
+      startedAt = Date.now();
+      timerId = setInterval(tick, 250);
+      startBtn.textContent = "Running…";
+      setActive(0);
+    });
+
+    resetBtn.addEventListener("click", () => {
+      clearInterval(timerId);
+      timerId = null;
+      startedAt = null;
+      timerEl.textContent = "0:00";
+      timerEl.style.color = "";
+      startBtn.textContent = "Start timer";
+      setActive(0);
+    });
+
+    prevBtn.addEventListener("click", () => setActive(idx - 1));
+    nextBtn.addEventListener("click", () => setActive(idx + 1));
+    fontSize.addEventListener("change", () => {
+      prompter.style.fontSize = `${fontSize.value}rem`;
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.target.matches("input, textarea, select")) return;
+      if (e.key === "n" || e.key === "ArrowRight") { e.preventDefault(); setActive(idx + 1); }
+      if (e.key === "p" || e.key === "ArrowLeft") { e.preventDefault(); setActive(idx - 1); }
+      if (e.key === " ") { e.preventDefault(); startBtn.click(); }
+    });
+
+    document.querySelectorAll("[data-copy]").forEach((el) => {
+      el.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(el.dataset.copy);
+          el.style.borderColor = "#14b8a6";
+          setTimeout(() => (el.style.borderColor = ""), 800);
+        } catch { /* ignore */ }
+      });
+    });
+
+    setActive(0);
+  </script>
+</body>
+</html>

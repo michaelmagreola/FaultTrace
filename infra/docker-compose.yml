@@ -1,0 +1,33 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: faulttrace
+      POSTGRES_PASSWORD: faulttrace
+      POSTGRES_DB: faulttrace
+    ports:
+      - "5432:5432"
+    volumes:
+      - faulttrace_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U faulttrace -d faulttrace"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://faulttrace:faulttrace@db:5432/faulttrace
+      AUTH_MODE: dev
+      AI_MODE: local
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  faulttrace_pg:

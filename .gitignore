@@ -1,0 +1,39 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
+
+# Env / secrets (keep *.example)
+.env
+.env.local
+frontend/.env
+backend/.env
+*.pem
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Build
+backend/*.egg-info/
+dist/
+build/
+*.db
+backend/faulttrace.db
+
+# Seed artifacts (keep JSON in repo; ignore local overrides)
+backend/app/seed/local_*.json
+
+# Local scratch / deploy secrets
+.aws-keys.json
+*.access-key.json

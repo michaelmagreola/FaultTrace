@@ -1,0 +1,15 @@
+{
+  "name": "faulttrace",
+  "private": true,
+  "version": "0.1.0",
+  "description": "FaultTrace — maintenance knowledge RAG for plant technicians",
+  "scripts": {
+    "start": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
+    "install:all": "npm --prefix frontend ci"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

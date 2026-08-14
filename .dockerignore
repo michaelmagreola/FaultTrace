@@ -1,0 +1,12 @@
+**/.venv
+**/__pycache__
+**/node_modules
+**/dist
+**/.git
+**/.env
+**/*.db
+**/demo-artifacts
+**/playwright-report
+**/test-results
+**/.pytest_cache
+**/tsc-*.txt

@@ -1,0 +1,117 @@
+name: Deploy FaultTrace to App Runner
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: faulttrace
+  APP_RUNNER_SERVICE: faulttrace
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image
+        id: build
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" .
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure App Runner service
+        env:
+          IMAGE_URI: ${{ steps.build.outputs.image }}
+          ACCOUNT_ID: "293726095977"
+          ACCESS_ROLE: "arn:aws:iam::293726095977:role/AppRunnerECRAccessRole"
+        run: |
+          set -euo pipefail
+          EXISTING=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='${APP_RUNNER_SERVICE}'].ServiceArn" --output text)
+
+          if [ -z "$EXISTING" ]; then
+            echo "Creating App Runner service ${APP_RUNNER_SERVICE}..."
+            cat > /tmp/apprunner-create.json <<EOF
+          {
+            "ServiceName": "${APP_RUNNER_SERVICE}",
+            "SourceConfiguration": {
+              "AutoDeploymentsEnabled": true,
+              "AuthenticationConfiguration": {
+                "AccessRoleArn": "${ACCESS_ROLE}"
+              },
+              "ImageRepository": {
+                "ImageIdentifier": "${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${ECR_REPOSITORY}:latest",
+                "ImageRepositoryType": "ECR",
+                "ImageConfiguration": {
+                  "Port": "8080",
+                  "RuntimeEnvironmentVariables": {
+                    "AUTH_MODE": "dev",
+                    "AI_MODE": "local",
+                    "CORS_ORIGINS": "*",
+                    "SESSION_SECRET": "${{ secrets.SESSION_SECRET }}"
+                  }
+                }
+              }
+            },
+            "InstanceConfiguration": {
+              "Cpu": "256",
+              "Memory": "512"
+            },
+            "HealthCheckConfiguration": {
+              "Protocol": "HTTP",
+              "Path": "/health",
+              "Interval": 10,
+              "Timeout": 5,
+              "HealthyThreshold": 1,
+              "UnhealthyThreshold": 5
+            }
+          }
+          EOF
+            aws apprunner create-service --cli-input-json file:///tmp/apprunner-create.json
+          else
+            echo "Starting deployment for existing service: $EXISTING"
+            aws apprunner start-deployment --service-arn "$EXISTING"
+          fi
+
+      - name: Wait for running service and print URL
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            STATUS=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='${APP_RUNNER_SERVICE}'].Status" --output text)
+            URL=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='${APP_RUNNER_SERVICE}'].ServiceUrl" --output text)
+            echo "[$i] Status=$STATUS URL=$URL"
+            if [ "$STATUS" = "RUNNING" ]; then
+              echo "LIVE_URL=https://$URL" >> "$GITHUB_STEP_SUMMARY"
+              echo "https://$URL"
+              exit 0
+            fi
+            if [ "$STATUS" = "CREATE_FAILED" ] || [ "$STATUS" = "DELETE_FAILED" ] || [ "$STATUS" = "DELETED" ]; then
+              echo "Service entered terminal status: $STATUS"
+              exit 1
+            fi
+            sleep 20
+          done
+          echo "Timed out waiting for RUNNING"
+          exit 1
